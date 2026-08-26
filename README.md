@@ -6,11 +6,46 @@ Engineering knowledge base and simulation architecture for TEPLOTEC heat pumps, 
 
 This repository is the source of truth for engineering decisions, calculations, simulation models, component data, design rules, and research related to TEPLOTEC products.
 
+The engineering platform is intended to turn repeatable engineering knowledge into deterministic, versioned software while keeping engineering responsibility with the engineer.
+
 ## Engineering principle
 
 The target is not to replace the engineer. The target is to automate the repeatable 80% of engineering work while keeping engineering review, physical design, safety decisions, validation, and final approval under human control.
 
 > Our server calculates and orchestrates. Specialized engineering tools validate, detail, and approve.
+
+## Product vision
+
+The engineer should enter engineering intent once and receive reproducible calculations from versioned formulas, component data, and simulation models.
+
+The platform must clearly distinguish:
+
+- deterministic calculated values
+- manufacturer-sourced data
+- simulation results
+- manually entered values
+- engineering assumptions
+- approved/released values
+
+AI may help explain results or prepare inputs, but AI is never the numerical calculation authority.
+
+## Engineering project model
+
+TEPLOTEC engineering must distinguish between different engineering scopes.
+
+### Site / Installation Engineering
+
+Covers building load, geology, drilling, boreholes, ground loops, fluids, hydraulic design, seasonal source conditions, and field measurements.
+
+### Heat Pump Product Engineering
+
+Covers the heat pump machine: thermal requirements, refrigeration circuit, compressor, heat exchangers, expansion device, hydraulics, controls, safety, mechanical packaging, P&ID, and product BOM.
+
+### Deployment / Commissioning
+
+Links a released product revision and manufactured unit to a real installation, commissioning measurements, and service data.
+
+These projects are connected through explicit, versioned engineering interfaces. A site design should not be copied into a product design as untraceable fields, and a product design should be reusable across many installations.
 
 ## Initial architecture
 
@@ -38,6 +73,17 @@ The target is not to replace the engineer. The target is to automate the repeata
 | Mechanical CAD | 20-40% | CAD tools + engineer |
 | CFD | 10-30% | Specialized CFD tools when justified |
 
+## Deterministic calculation principle
+
+Every calculation result must be reproducible from:
+
+- engine version
+- formula/model version
+- input snapshot/revision
+- component data revisions
+
+The platform should preserve provenance for every important number and expose it to the engineer.
+
 ## Initial engineering model
 
 A heat-pump product should be represented as a structured model rather than only as a drawing. The model should capture:
@@ -59,14 +105,44 @@ A heat-pump product should be represented as a structured model rather than only
 - BOM references
 - P&ID tags
 - calculation and simulation versions
+- engineering assumptions and source/provenance
+- approvals and release status
 
 This model becomes the common source for calculations, simulation, P&ID, BOM, reports, and eventually the digital twin.
+
+## Engineering Workspace
+
+The primary UX is a persistent project workspace, not a linear onboarding wizard.
+
+Suggested sidebar:
+
+```text
+0 Overview
+1 Thermal Requirements
+2 Source / Ground Interface
+3 Refrigeration Cycle
+4 Heat Exchangers
+5 Hydraulics
+6 Components
+7 Simulation
+8 P&ID
+9 BOM
+10 Validation
+11 Release
+```
+
+Project creation is intentionally small. Engineering data is entered in the relevant step and can be revised later.
+
+See [Engineering Workspace](docs/engineering-workspace.md) for the detailed UX and project model.
 
 ## Suggested repository structure
 
 ```text
 engineering/
 ├── docs/
+│   ├── engineering-platform.md
+│   ├── engineering-workspace.md
+│   └── pilot-deployment.md
 ├── models/
 │   ├── gt-08/
 │   ├── gt-12/
@@ -106,6 +182,47 @@ Envelope:  OK
 PASS
 ```
 
+## Pilot deployment
+
+The first deployment should be deliberately small and run on the existing agency server using Docker Compose:
+
+```text
+web/API + PostgreSQL + engineering-worker
+```
+
+OpenModelica/OMSimulator should be added as a separate simulation worker after the deterministic calculation layer is validated.
+
+The first vertical slice is:
+
+```text
+Create project
+ -> Thermal Requirements
+ -> Source Interface
+ -> Refrigeration Cycle
+ -> Hydraulics
+ -> Validation
+ -> Calculation History
+```
+
+See [Pilot Deployment](docs/pilot-deployment.md).
+
+## ERP and manufacturing boundary
+
+Engineering BOM should not directly mutate ERP BOM data.
+
+The intended release flow is:
+
+```text
+Engineering BOM
+      -> Engineering Review
+      -> Released BOM Revision
+      -> ERP / Procurement / Manufacturing
+```
+
+This keeps engineering revisions, procurement data, manufacturing structures, and field units traceable.
+
 ## Current direction
 
 Start with an open-source, programmable engineering stack rather than making a proprietary monolith. Build the calculation and product-model layer ourselves, integrate open simulation tools, and keep specialized commercial tools for validation and detailed design.
+
+The long-term asset is the TEPLOTEC engineering knowledge base: validated components, equations, design rules, operating envelopes, tested configurations, simulation models, P&ID templates, BOM relationships, physical test results, and engineering decisions.
